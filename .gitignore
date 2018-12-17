@@ -1,0 +1,6 @@
+bin/
+Servers/
+target/
+.settings
+.metadata
+.project
