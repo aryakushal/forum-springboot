@@ -1,13 +1,22 @@
 package test.ironman.platform.controller;
 
+import java.util.Optional;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import test.ironman.platform.exception.ResourceNotFoundException;
 import test.ironman.platform.model.Question;
-import test.ironman.platform.repository.*;
+import test.ironman.platform.repository.QuestionRepository;
 
 @RestController
 public class QuestionController {
@@ -16,7 +25,27 @@ public class QuestionController {
 	private QuestionRepository questionRepository;
 
 	@GetMapping("/questions")
-	public Page<Question> getQuestion(Pageable pageable) {
+	public Page<Question> getQuestions(Pageable pageable) {
 		return questionRepository.findAll( pageable );
+	}
+	
+	@PostMapping("/questions")
+	public Question saveQuestion(@Valid @RequestBody Question question) {
+		return questionRepository.save(question);
+	}
+	
+	@GetMapping("/questions/{questionId}")
+	public Optional<Question> getQuestion(@PathVariable Long questionId) {
+		return questionRepository.findById(questionId);
+	}
+	
+	@PutMapping("/questions/{questionId}")
+	public Question updateQuestion(@PathVariable Long questionId, @RequestBody Question questionRequest ) {
+		return questionRepository.findById(questionId).map(
+				question -> {
+					question.setTitle(questionRequest.getTitle());
+					question.setDescription(questionRequest.getDescription());
+					return questionRepository.save(question);
+				}).orElseThrow(() -> new ResourceNotFoundException("Question not found with id " + questionId));
 	}
 }
